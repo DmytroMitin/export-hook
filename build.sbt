@@ -32,13 +32,15 @@ lazy val commonSettings = Seq(
   ),
   libraryDependencies ++= Seq(
     "com.github.dmytromitin" %% "macro-compat"  % "1.1.2-SNAPSHOT",
-    "com.chuusai"            %% "shapeless"     % "2.4.0-M1" % Test,
+    "com.chuusai"            %% "shapeless"     % (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 11 => "2.4.0-M1"
+      case _                                         => "2.3.3"
+    }) % Test,
     "org.typelevel"          %% "simulacrum"    % "1.0.0"    % Test,
     "org.scalatest"          %% "scalatest"     % "3.1.2"    % Test,
     "org.scalacheck"         %% "scalacheck"    % "1.14.3"   % Test,
     compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
   ),
-
   scmInfo :=
     Some(ScmInfo(
       url("https://github.com/milessabin/export-hook"),
@@ -97,6 +99,12 @@ lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
         compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch),
         "org.scalamacros" %% "quasiquotes" % "2.1.1" cross CrossVersion.binary
       )
+    }
+  },
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 13 => Seq("-Ymacro-annotations")
+      case _                                         => Seq()
     }
   }
 )
