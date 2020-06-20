@@ -1,3 +1,19 @@
+
+[![Build Status](https://travis-ci.org/DmytroMitin/export-hook.svg?branch=master)](https://travis-ci.org/DmytroMitin/export-hook)
+[![Sonatype Snapshots](https://img.shields.io/nexus/s/https/oss.sonatype.org/com.github.dmytromitin/export-hook_2.13.svg?color=success)](https://oss.sonatype.org/content/groups/public/com/github/dmytromitin/export-hook_2.13/)
+[![Join the chat at https://gitter.im/DmytroMitin/AUXify](https://badges.gitter.im/DmytroMitin/AUXify.svg)](https://gitter.im/DmytroMitin/AUXify?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+```
+scalaVersion := "2.13.2"
+//scalaVersion := "2.12.11"
+//scalaVersion := "2.11.12"
+//scalaVersion := "2.10.7"
+
+resolvers += Resolver.sonatypeRepo("public")
+
+libraryDependencies += "com.github.dmytromitin" %% "export-hook" % "1.2.1"
+```
+
 # export-hook: minimal dependency support for expanding type class implicit scope
 
 This project provides minimal infrastructure to support the inclusion of derived, subclass and other orphan instances
