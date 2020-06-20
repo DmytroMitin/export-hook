@@ -10,8 +10,8 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
-  scalaVersion := "2.12.1",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.1"),
+  scalaVersion := "2.13.2",
+  crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.11", "2.13.2"),
   sourceGenerators in Compile += Def.task(Boilerplate.genCode((sourceManaged in Compile).value)).taskValue
 )
 
@@ -25,18 +25,18 @@ lazy val commonSettings = Seq(
     "-unchecked"
   ),
   resolvers ++= Seq(
+    Resolver.sonatypeRepo("public"),
     Resolver.sonatypeRepo("releases"),
     Resolver.sonatypeRepo("snapshots"),
     "bintray/non" at "http://dl.bintray.com/non/maven"
   ),
   libraryDependencies ++= Seq(
-    "org.typelevel"        %%% "macro-compat"  % "1.1.1",
-    "com.chuusai"          %%% "shapeless"     % "2.3.2"  % "test",
-    "com.github.mpilquist" %%% "simulacrum"    % "0.10.0" % "test",
-    "org.scalatest"        %%% "scalatest"     % "3.0.0"  % "test",
-    "org.scalacheck"       %%% "scalacheck"    % "1.13.4" % "test",
-
-    compilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
+    "com.github.dmytromitin" %% "macro-compat"  % "1.1.2-SNAPSHOT",
+    "com.chuusai"            %% "shapeless"     % "2.4.0-M1" % Test,
+    "org.typelevel"          %% "simulacrum"    % "1.0.0"    % Test,
+    "org.scalatest"          %% "scalatest"     % "3.1.2"    % Test,
+    "org.scalacheck"         %% "scalacheck"    % "1.14.3"   % Test,
+    compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
   ),
 
   scmInfo :=
@@ -46,10 +46,10 @@ lazy val commonSettings = Seq(
     ))
 ) ++ crossVersionSharedSources ++ scalaMacroDependencies
 
-lazy val commonJsSettings = Seq(
-  scalaJSStage in Global := FastOptStage,
-  parallelExecution in Test := false
-)
+//lazy val commonJsSettings = Seq(
+//  scalaJSStage in Global := FastOptStage,
+//  parallelExecution in Test := false
+//)
 
 lazy val commonJvmSettings = Seq(
   parallelExecution in Test := false
@@ -58,8 +58,8 @@ lazy val commonJvmSettings = Seq(
 lazy val coreSettings = buildSettings ++ commonSettings ++ publishSettings
 
 lazy val root = project.in(file("."))
-  .aggregate(coreJS, coreJVM)
-  .dependsOn(coreJS, coreJVM)
+  .aggregate(/*coreJS,*/ coreJVM)
+  .dependsOn(/*coreJS,*/ coreJVM)
   .settings(coreSettings:_*)
   .settings(noPublishSettings)
 
@@ -67,33 +67,36 @@ lazy val core = crossProject.crossType(CrossType.Pure)
   .settings(moduleName := "export-hook")
   .settings(coreSettings:_*)
   .settings(mimaSettings:_*)
-  .jsSettings(commonJsSettings:_*)
+//  .jsSettings(commonJsSettings:_*)
   .jvmSettings(commonJvmSettings:_*)
 
 lazy val coreJVM = core.jvm
-lazy val coreJS = core.js
+//lazy val coreJS = core.js
 
 addCommandAlias("validate", ";root;compile;mimaReportBinaryIssues;test")
 addCommandAlias("release-all", ";root;release")
-addCommandAlias("js", ";project coreJS")
+//addCommandAlias("js", ";project coreJS")
 addCommandAlias("jvm", ";project coreJVM")
 addCommandAlias("root", ";project root")
 
 lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
+    scalaOrganization.value % "scala-compiler" % scalaVersion.value % Provided,
+    scalaOrganization.value % "scala-reflect"  % scalaVersion.value % Provided
   ),
   libraryDependencies ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
+      // if scala 2.13+ is used, quasiquotes and macro-annotations are merged into scala-reflect
+      case Some((2, scalaMajor)) if scalaMajor >= 13 => Seq()
       // if scala 2.11+ is used, quasiquotes are merged into scala-reflect
-      case Some((2, scalaMajor)) if scalaMajor >= 11 => Seq()
+      case Some((2, scalaMajor)) if scalaMajor >= 11 => Seq(
+        compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch)
+      )
       // in Scala 2.10, quasiquotes are provided by macro paradise
-      case Some((2, 10)) =>
-        Seq(
-          "org.scalamacros" %% "quasiquotes" % "2.1.0" cross CrossVersion.binary
-        )
+      case Some((2, 10)) => Seq(
+        compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch),
+        "org.scalamacros" %% "quasiquotes" % "2.1.1" cross CrossVersion.binary
+      )
     }
   }
 )
