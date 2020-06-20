@@ -36,7 +36,10 @@ lazy val commonSettings = Seq(
       case Some((2, scalaMajor)) if scalaMajor >= 11 => "2.4.0-M1"
       case _                                         => "2.3.3"
     }) % Test,
-    "org.typelevel"          %% "simulacrum"    % "1.0.0"    % Test,
+    (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 11 => "org.typelevel"        %% "simulacrum" % "1.0.0"
+      case _                                         => "com.github.mpilquist" %% "simulacrum" % "0.15.0"
+    }) % Test,
     "org.scalatest"          %% "scalatest"     % "3.1.2"    % Test,
     "org.scalacheck"         %% "scalacheck"    % "1.14.3"   % Test,
     compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
